@@ -349,6 +349,78 @@
     box-shadow: var(--p-inputtext-focus-ring-shadow);
 }
 
+/* 确认气泡框（新建服务商等表单浮层）内的按钮与输入框 */
+.pa-confirm-popup .p-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: var(--p-button-primary-background);
+    color: var(--p-button-primary-color);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.pa-confirm-popup .p-button:hover {
+    background: var(--p-button-primary-hover-background);
+    border-color: var(--p-button-primary-hover-border-color);
+    color: var(--p-button-primary-hover-color);
+}
+
+.pa-confirm-popup .p-button-secondary {
+    background: var(--p-button-secondary-background);
+    border-color: var(--p-content-border-color);
+    color: var(--p-button-secondary-color);
+}
+
+.pa-confirm-popup .p-button-secondary:hover {
+    background: var(--p-button-secondary-hover-background);
+    border-color: var(--p-content-border-color);
+    color: var(--p-button-secondary-color);
+}
+
+.pa-confirm-popup .p-button-danger {
+    background: var(--p-button-danger-background);
+    border-color: var(--p-button-danger-border-color);
+    color: var(--p-button-danger-color);
+}
+
+.pa-confirm-popup .p-button-danger:hover {
+    background: var(--p-button-danger-hover-background);
+    border-color: var(--p-button-danger-hover-border-color);
+}
+
+.pa-confirm-popup .p-button-label {
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.pa-confirm-popup .p-inputtext:not(.pa-dropdown-label):not(.pa-combobox-input) {
+    box-sizing: border-box;
+    width: 100%;
+    background: var(--p-inputtext-background);
+    border: 1px solid var(--p-inputtext-border-color);
+    border-radius: var(--p-inputtext-border-radius);
+    color: var(--p-inputtext-color);
+    font-family: inherit;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pa-confirm-popup .p-inputtext:not(.pa-dropdown-label):not(.pa-combobox-input):focus {
+    border-color: var(--p-inputtext-focus-border-color);
+    box-shadow: var(--p-inputtext-focus-ring-shadow);
+}
+
 /* 内联设置行（用于新版设置面板中的自定义控件） */
 .pa-settings-inline {
     display: flex;

@@ -1643,8 +1643,9 @@ export function createConfirmPopup(options) {
         }
     };
 
-    // 将气泡框添加到 body
-    document.body.appendChild(popup);
+    // 将气泡框挂载到当前弹窗图层（无 ComfyUI 弹窗时退回 body）
+    // 新版前端设置弹窗有焦点锁，挂在 body 下的输入框无法获得焦点
+    getDialogHost().appendChild(popup);
     localizeElement(popup);
 
     // 定位气泡框
