@@ -349,8 +349,9 @@
     box-shadow: var(--p-inputtext-focus-ring-shadow);
 }
 
-/* 确认气泡框（新建服务商等表单浮层）内的按钮与输入框 */
-.pa-confirm-popup .p-button {
+/* 确认气泡框（新建服务商等表单浮层）、多选模型列表内的按钮与输入框 */
+.pa-confirm-popup .p-button,
+.pa-multi-listbox .p-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -368,36 +369,48 @@
     transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.pa-confirm-popup .p-button:hover {
+.pa-confirm-popup .p-button:hover,
+.pa-multi-listbox .p-button:hover {
     background: var(--p-button-primary-hover-background);
     border-color: var(--p-button-primary-hover-border-color);
     color: var(--p-button-primary-hover-color);
 }
 
-.pa-confirm-popup .p-button-secondary {
+.pa-confirm-popup .p-button-secondary,
+.pa-multi-listbox .p-button-secondary {
     background: var(--p-button-secondary-background);
     border-color: var(--p-content-border-color);
     color: var(--p-button-secondary-color);
 }
 
-.pa-confirm-popup .p-button-secondary:hover {
+.pa-confirm-popup .p-button-secondary:hover,
+.pa-multi-listbox .p-button-secondary:hover {
     background: var(--p-button-secondary-hover-background);
     border-color: var(--p-content-border-color);
     color: var(--p-button-secondary-color);
 }
 
-.pa-confirm-popup .p-button-danger {
+.pa-confirm-popup .p-button-danger,
+.pa-multi-listbox .p-button-danger {
     background: var(--p-button-danger-background);
     border-color: var(--p-button-danger-border-color);
     color: var(--p-button-danger-color);
 }
 
-.pa-confirm-popup .p-button-danger:hover {
+.pa-confirm-popup .p-button-danger:hover,
+.pa-multi-listbox .p-button-danger:hover {
     background: var(--p-button-danger-hover-background);
     border-color: var(--p-button-danger-hover-border-color);
 }
 
-.pa-confirm-popup .p-button-label {
+.pa-confirm-popup .p-button:disabled,
+.pa-multi-listbox .p-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pa-confirm-popup .p-button-label,
+.pa-multi-listbox .p-button-label {
     white-space: nowrap;
     font-weight: 500;
 }

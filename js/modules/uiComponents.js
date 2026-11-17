@@ -2200,7 +2200,8 @@ export function createMultiSelectListbox(options) {
     `;
 
     overlay.appendChild(listbox);
-    document.body.appendChild(overlay);
+    // 挂载到当前弹窗图层，避免新版前端焦点锁导致搜索框无法输入
+    getDialogHost().appendChild(overlay);
     localizeElement(listbox);
     const stopListboxLocalization = observeLocalizedMutations(listbox);
 
