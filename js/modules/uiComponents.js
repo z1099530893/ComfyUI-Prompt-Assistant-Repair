@@ -423,9 +423,11 @@ export function createSettingsDialog(options) {
             offsetY = e.clientY - rect.top;
 
             // 移除居中定位
+            // 弹窗挂在 Reka 图层内时，left/top 以图层为原点，需要换算坐标
+            const hostBox = getHostBox(modal.parentElement);
             modal.style.transform = 'none';
-            modal.style.left = rect.left + 'px';
-            modal.style.top = rect.top + 'px';
+            modal.style.left = `${rect.left - hostBox.x}px`;
+            modal.style.top = `${rect.top - hostBox.y}px`;
 
             // 添加拖动状态
             modal.classList.add('dragging');
@@ -438,25 +440,25 @@ export function createSettingsDialog(options) {
             if (!isDragging) return;
             e.preventDefault();
 
-            // 计算新位置（考虑鼠标在弹窗内的偏移量）
-            let newLeft = e.clientX - offsetX;
-            let newTop = e.clientY - offsetY;
-
-            // 获取视口和弹窗尺寸
+            // 计算新位置（考虑鼠标在弹窗内的偏移量，统一使用视口坐标计算边界）
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
             const modalRect = modal.getBoundingClientRect();
             const modalWidth = modalRect.width;
             const modalHeight = modalRect.height;
 
+            let newLeft = e.clientX - offsetX;
+            let newTop = e.clientY - offsetY;
+
             // 边界检查（保持10px边距）
             const margin = 10;
             newLeft = Math.max(margin, Math.min(newLeft, viewportWidth - modalWidth - margin));
             newTop = Math.max(margin, Math.min(newTop, viewportHeight - modalHeight - margin));
 
-            // 更新位置
-            modal.style.left = `${newLeft}px`;
-            modal.style.top = `${newTop}px`;
+            // 换算为挂载节点的坐标系后再赋值
+            const hostBox = getHostBox(modal.parentElement);
+            modal.style.left = `${newLeft - hostBox.x}px`;
+            modal.style.top = `${newTop - hostBox.y}px`;
         };
 
         const stopDragging = () => {
