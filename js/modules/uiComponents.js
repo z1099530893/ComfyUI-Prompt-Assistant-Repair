@@ -84,6 +84,21 @@ function getDialogHost() {
 }
 
 /**
+ * 获取挂载节点的坐标原点偏移
+ * 插件浮层挂在 Reka 图层内时，position: fixed 的包含块变成该图层，
+ * 需要把视口坐标换算成图层内坐标，否则浮层会被整体偏移、超出可视区域。
+ * @param {HTMLElement} host 挂载节点
+ * @returns {{x: number, y: number, width: number, height: number}} 包含块的位置与尺寸
+ */
+function getHostBox(host) {
+    if (!host || host === document.body) {
+        return { x: 0, y: 0, width: window.innerWidth, height: window.innerHeight };
+    }
+    const rect = host.getBoundingClientRect();
+    return { x: rect.left, y: rect.top, width: rect.width, height: rect.height };
+}
+
+/**
  * 创建通用的设置弹窗
  * @param {Object} options 弹窗配置选项
  * @param {string} options.title 弹窗标题
@@ -1621,8 +1636,10 @@ export function createConfirmPopup(options) {
             top = viewportHeight - popupRect.height - margin;
         }
 
-        popup.style.top = `${top}px`;
-        popup.style.left = `${left}px`;
+        // 换算为挂载节点的坐标系（挂在 Reka 图层内时以图层为原点）
+        const hostBox = getHostBox(popup.parentElement);
+        popup.style.top = `${top - hostBox.y}px`;
+        popup.style.left = `${left - hostBox.x}px`;
 
         // 设置箭头位置
         arrow.className = `pa-confirm-popup-arrow ${arrowPosition}`;
@@ -2207,27 +2224,39 @@ export function createMultiSelectListbox(options) {
 
     // 计算并设置位置（右对齐按钮，自适应上下）
     const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
-    const listboxHeight = 400; // max-height
-    const spaceBelow = viewportHeight - btnRect.bottom;
-    const spaceAbove = btnRect.top;
+    const listboxHeight = 400; // 期望最大高度
+    const gap = 4;
+    const margin = 8;
+    // 浮层可能挂在 Reka 图层内，此时 fixed 坐标以图层为原点，需要换算
+    const hostBox = getHostBox(overlay.parentElement);
 
-    if (spaceBelow >= listboxHeight || spaceBelow > spaceAbove) {
-        // 显示在按钮下方
-        listbox.style.top = `${btnRect.bottom + 4}px`;
+    // 可用空间不足时压缩高度，保证底部按钮栏始终可见
+    const spaceBelow = viewportHeight - btnRect.bottom - gap - margin;
+    const spaceAbove = btnRect.top - gap - margin;
+    const showBelow = spaceBelow >= listboxHeight || spaceBelow >= spaceAbove;
+    const availableHeight = Math.max(160, Math.min(listboxHeight, showBelow ? spaceBelow : spaceAbove));
+
+    listbox.style.maxHeight = `${availableHeight}px`;
+    listbox.style.bottom = '';
+    listbox.style.top = showBelow
+        ? `${btnRect.bottom + gap - hostBox.y}px`
+        : `${Math.max(margin, btnRect.top - gap - availableHeight) - hostBox.y}px`;
+
+    // 右对齐按钮，并避免超出左边界
+    const listboxWidth = 320;
+    if (btnRect.right - listboxWidth < margin) {
+        listbox.style.left = `${margin - hostBox.x}px`;
+        listbox.style.right = '';
     } else {
-        // 显示在按钮上方
-        listbox.style.bottom = `${viewportHeight - btnRect.top + 4}px`;
+        listbox.style.right = `${hostBox.x + hostBox.width - btnRect.right}px`;
+        listbox.style.left = '';
     }
-
-    // 右对齐按钮
-    listbox.style.right = `${viewportWidth - btnRect.right}px`;
 
     // 关闭函数
     const close = () => {
         stopListboxLocalization();
         if (overlay.parentNode) {
-            document.body.removeChild(overlay);
+            overlay.parentNode.removeChild(overlay);
         }
     };
 
