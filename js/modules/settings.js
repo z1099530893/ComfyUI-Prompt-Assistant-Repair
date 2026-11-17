@@ -39,6 +39,19 @@ import {
 // 标记是否是首次加载页面
 let isFirstLoad = true;
 
+/**
+ * 创建自定义设置行容器（适配新版 Vue 设置面板）
+ * 新版前端会把 type 函数返回的元素插入到设置行右侧的 flex 容器中，
+ * 旧版使用的 <tr>/<td> 结构在新面板中会产生匿名表格并导致排版错乱，
+ * 因此统一返回带插件作用域的 <div>。
+ * @returns {HTMLElement} 设置行容器
+ */
+function createCustomSettingRow() {
+    const row = document.createElement("div");
+    row.className = "pa-settings-root pa-settings-inline";
+    return row;
+}
+
 function localizeSettingsPayload(payload) {
     if (Array.isArray(payload)) {
         return payload.map(item => localizeSettingsPayload(item));
@@ -69,6 +82,23 @@ function localizeSettingsPayload(payload) {
     }
 
     return localized;
+}
+
+/**
+ * 为设置项写入递减的 sortOrder
+ * 新版设置面板按 sortOrder 降序排列（没有 sortOrder 时回退到按名称排序，
+ * 会导致中文设置项顺序混乱），这里按注册顺序生成 sortOrder 以保持设计顺序。
+ * @param {Array<Object>} settings 设置项列表
+ * @returns {Array<Object>} 处理后的设置项列表
+ */
+function applySettingsOrder(settings) {
+    const total = settings.length;
+    settings.forEach((setting, index) => {
+        if (setting.sortOrder === undefined) {
+            setting.sortOrder = total - index;
+        }
+    });
+    return settings;
 }
 
 // ---服务选择器配置---
@@ -333,22 +363,14 @@ function showRulesConfigModal() {
  * @returns {HTMLElement} 设置行元素
  */
 function createServiceSelector(type, label) {
-    const row = document.createElement("tr");
-    row.className = "promptwidget-settings-row";
-
-    const labelCell = document.createElement("td");
-    labelCell.className = "comfy-menu-label";
-    row.appendChild(labelCell);
-
-    const selectCell = document.createElement("td");
+    const row = createCustomSettingRow();
 
     // 创建加载占位容器
     const container = document.createElement("div");
     container.style.minWidth = "180px";
     container.innerHTML = `<span style="color: var(--p-text-muted-color); font-size: 12px;">${tUI("加载中...")}</span>`;
 
-    selectCell.appendChild(container);
-    row.appendChild(selectCell);
+    row.appendChild(container);
 
     let currentOptions = []; // 存储当前选项引用
     let updateDropdownOptions = null; // 存储更新函数
@@ -473,7 +495,7 @@ export async function registerSettings() {
 
         app.registerExtension({
             name: "PromptAssistant.Settings",
-            settings: localizeSettingsPayload([
+            settings: localizeSettingsPayload(applySettingsOrder([
                 {
                     id: UI_LANGUAGE_SETTING_ID,
                     name: "界面语言",
@@ -686,20 +708,13 @@ export async function registerSettings() {
                     category: ["✨提示词小助手", " 配置", "API配置"],
                     tooltip: "配置或修改API信息",
                     type: () => {
-                        const row = document.createElement("tr");
-                        row.className = "promptwidget-settings-row";
+                        const row = createCustomSettingRow();
 
-                        const labelCell = document.createElement("td");
-                        labelCell.className = "comfy-menu-label";
-                        row.appendChild(labelCell);
-
-                        const buttonCell = document.createElement("td");
                         const button = createLoadingButton(tUI("API管理器"), async () => {
                             showAPIConfigModal();
                         }, false); // 设置 showSuccessToast 为 false
 
-                        buttonCell.appendChild(button);
-                        row.appendChild(buttonCell);
+                        row.appendChild(button);
                         return row;
                     }
                 },
@@ -1023,14 +1038,8 @@ export async function registerSettings() {
                     category: ["✨提示词小助手", "系统", "清理缓存"],
                     tooltip: "清理所有缓存，包括历史记录、标签、翻译缓存、节点文档翻译缓存",
                     type: () => {
-                        const row = document.createElement("tr");
-                        row.className = "promptwidget-settings-row";
+                        const row = createCustomSettingRow();
 
-                        const labelCell = document.createElement("td");
-                        labelCell.className = "comfy-menu-label";
-                        row.appendChild(labelCell);
-
-                        const buttonCell = document.createElement("td");
                         const button = createLoadingButton(tUI("清理所有缓存"), async () => {
                             try {
                                 // 获取清理前的缓存统计
@@ -1122,8 +1131,7 @@ export async function registerSettings() {
                             }
                         });
 
-                        buttonCell.appendChild(button);
-                        row.appendChild(buttonCell);
+                        row.appendChild(button);
                         return row;
                     }
                 },
@@ -1136,10 +1144,8 @@ export async function registerSettings() {
                     name: "关于",
                     category: ["✨提示词小助手", " ✨提示词小助手"],
                     type: () => {
-                        const row = document.createElement("tr");
-                        row.className = "promptwidget-settings-row";
-                        const cell = document.createElement("td");
-                        cell.colSpan = 2;
+                        const row = createCustomSettingRow();
+                        const cell = row;
                         cell.style.display = "flex";
                         cell.style.alignItems = "center";
                         cell.style.gap = "12px";
@@ -1276,12 +1282,12 @@ export async function registerSettings() {
 
                                 // 检查图片是否已开始加载（naturalHeight > 0 说明图片正在加载）
                                 if (wechatQrImg.naturalHeight > 0) {
-                                    Logger.log(2, '远程二维码加载中，延长等待时间');
+                                    logger.debug('远程二维码加载中，延长等待时间');
                                     // 图片已开始加载，继续等待 onload，取消超时回退
                                     if (qrFallbackTimer) { clearTimeout(qrFallbackTimer); qrFallbackTimer = null; }
                                 } else {
                                     // 图片未开始加载，可能是网络问题，回退到本地
-                                    Logger.log(1, '远程二维码加载超时，切换到本地备用图');
+                                    logger.debug('远程二维码加载超时，切换到本地备用图');
                                     loadLocalQr();
                                 }
                             }, 3000); // 延长到 3 秒，给远程图片更多加载时间
@@ -1327,7 +1333,6 @@ export async function registerSettings() {
 
                         cell.appendChild(wechatTag);
 
-                        row.appendChild(cell);
                         return row;
                     }
                 },
@@ -1339,25 +1344,18 @@ export async function registerSettings() {
                     category: ["✨提示词小助手", " 配置", "规则"],
                     tooltip: "可以自定义提示词优化规则，和反推提示词规则，使得提示词生成更加符合你的需求",
                     type: () => {
-                        const row = document.createElement("tr");
-                        row.className = "promptwidget-settings-row";
+                        const row = createCustomSettingRow();
 
-                        const labelCell = document.createElement("td");
-                        labelCell.className = "comfy-menu-label";
-                        row.appendChild(labelCell);
-
-                        const buttonCell = document.createElement("td");
                         const button = createLoadingButton(tUI("规则管理器"), async () => {
                             showRulesConfigModal();
                         }, false);
 
-                        buttonCell.appendChild(button);
-                        row.appendChild(buttonCell);
+                        row.appendChild(button);
                         return row;
                     }
                 },
 
-            ])
+            ]))
         });
 
         logger.log("小助手设置注册成功");

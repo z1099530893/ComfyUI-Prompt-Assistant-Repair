@@ -27,6 +27,63 @@ function getComfyUIDialogZIndex() {
 }
 
 /**
+ * 插件挂载到 body 下的独立浮层选择器
+ * 用于识别“属于插件的弹窗/下拉/菜单”，供 Reka UI 兼容逻辑使用
+ */
+const PLUGIN_LAYER_SELECTOR = [
+    '.settings-modal',
+    '.settings-modal-overlay',
+    '.pa-dropdown-panel',
+    '.pa-context-menu',
+    '.pa-confirm-popup',
+    '.pa-multi-listbox',
+    '.model-listbox',
+    '.model-listbox-overlay',
+    '.add-service-dialog',
+    '.image-assistant-copy-dialog',
+    '.popup_container',
+    '.button-context-menu'
+].join(',');
+
+/**
+ * 处理新版前端（Reka UI）的“点击外部关闭”误伤
+ * 新版设置弹窗基于 Reka UI，会在 document 上监听 pointerdown / focusin 判断
+ * 用户是否点击了弹窗外部，从而关闭设置弹窗。
+ * 插件弹窗是挂在 body 下的独立层，点击时会被误判为“外部点击”，
+ * 因此在 body 冒泡阶段拦截这两类事件（不影响 click 监听与插件自身交互）。
+ * @param {Event} event 事件对象
+ */
+function stopEventFromLeakingToComfyUI(event) {
+    if (event.target instanceof Element && event.target.closest(PLUGIN_LAYER_SELECTOR)) {
+        event.stopPropagation();
+    }
+}
+
+if (typeof document !== 'undefined' && document.body) {
+    document.body.addEventListener('pointerdown', stopEventFromLeakingToComfyUI);
+    document.body.addEventListener('focusin', stopEventFromLeakingToComfyUI);
+}
+
+/**
+ * 获取插件弹窗的挂载节点
+ * 新版前端的设置弹窗基于 Reka UI 的 DismissableLayer：
+ * 打开时会把 body 设为 pointer-events: none，并启用焦点锁定，
+ * 挂在 body 下的插件弹窗会出现“看得见但点不到、输入框无法聚焦”的问题。
+ * 因此当存在 ComfyUI 模态框图层时，把插件弹窗挂到该图层内部。
+ * @returns {HTMLElement} 挂载节点
+ */
+function getDialogHost() {
+    const layers = document.querySelectorAll('[data-dismissable-layer]');
+    for (let i = layers.length - 1; i >= 0; i--) {
+        const layer = layers[i];
+        if (layer.getAttribute('data-state') !== 'closed') {
+            return layer;
+        }
+    }
+    return document.body;
+}
+
+/**
  * 创建通用的设置弹窗
  * @param {Object} options 弹窗配置选项
  * @param {string} options.title 弹窗标题
@@ -65,7 +122,7 @@ export function createSettingsDialog(options) {
             // 创建遮罩层
             overlay = document.createElement('div');
             overlay.className = 'settings-modal-overlay';
-            document.body.appendChild(overlay);
+            getDialogHost().appendChild(overlay);
         }
 
 
@@ -417,7 +474,7 @@ export function createSettingsDialog(options) {
         }
 
         // 显示弹窗和遮罩层
-        document.body.appendChild(modal);
+        getDialogHost().appendChild(modal);
 
         // 添加显示动画
         requestAnimationFrame(() => {

@@ -10,6 +10,356 @@
  */
 
 /* ===================================================
+   0. 新旧前端主题兼容层 (ComfyUI Frontend 1.5x+)
+   ---------------------------------------------------
+   ComfyUI 新版前端不再内置 PrimeVue v3 的主题 CSS，
+   --p-* 系列变量与 .p-button / .p-inputtext 等基础样式均已移除。
+   这里统一把它们映射到新版主题变量 (--foreground / --card / --primary ...)，
+   并为插件仍在使用的 PrimeVue 类名补上最小可用的基础样式。
+   =================================================== */
+
+:root {
+    /* --- 文本 --- */
+    --p-text-color: var(--fg-color, #e6e6e6);
+    --p-text-muted-color: var(--descrip-text, #9a9a9a);
+    --text-primary: var(--fg-color, #e6e6e6);
+    --text-color-secondary: var(--descrip-text, #9a9a9a);
+    --color-muted: var(--descrip-text, #9a9a9a);
+    --error-color: var(--destructive, #ef4444);
+
+    /* --- 主色 --- */
+    --p-primary-color: var(--primary, #0b8ce9);
+    --p-primary-hover-color: color-mix(in srgb, var(--primary, #0b8ce9) 82%, #fff);
+    --p-primary-100: color-mix(in srgb, var(--primary, #0b8ce9) 20%, transparent);
+    --p-primary-400: color-mix(in srgb, var(--primary, #0b8ce9) 80%, #fff);
+    --p-primary-500: var(--primary, #0b8ce9);
+    --p-orange-500: #fd9903;
+    --p-red-400: #f87171;
+    --p-red-500: #ef4444;
+    --p-red-600: #dc2626;
+    --p-green-500: #22c55e;
+    --p-green-600: #16a34a;
+
+    /* --- 面板 / 内容 --- */
+    --p-content-background: var(--comfy-menu-bg, #202121);
+    --p-content-border-color: var(--border-color, #444);
+    --p-panel-border-color: var(--border-color, #444);
+    --p-divider-color: var(--border-color, #444);
+    --p-divider-border-color: var(--border-color, #444);
+    --p-surface-0: var(--card, #262729);
+    --p-surface-50: var(--comfy-menu-bg, #202121);
+    --p-surface-100: var(--accent, #303030);
+    --p-surface-400: var(--border-color, #444);
+    --p-surface-700: var(--comfy-menu-bg, #202121);
+    --p-scrollpanel-bar-background: color-mix(in srgb, var(--fg-color, #e6e6e6) 25%, transparent);
+    --secondary-background: var(--comfy-menu-secondary-bg, #262729);
+    --node-component-header-surface: var(--comfy-menu-secondary-bg, #262729);
+    --interface-menu-component-surface-selected: var(--accent, #303030);
+
+    /* --- 弹窗 --- */
+    --p-dialog-background: var(--comfy-menu-bg, #202121);
+    --p-dialog-color: var(--fg-color, #e6e6e6);
+    --p-dialog-border-color: var(--border-color, #444);
+    --p-dialog-border-radius: 8px;
+    --p-dialog-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    --p-dialog-header-color: var(--fg-color, #e6e6e6);
+    --p-dialog-header-padding: 1rem 1.5rem;
+
+    /* --- 输入框 --- */
+    --p-inputtext-background: var(--comfy-input-bg, #171718);
+    --p-inputtext-color: var(--input-text, #e6e6e6);
+    --p-inputtext-border-color: var(--border-color, #444);
+    --p-inputtext-border-radius: 6px;
+    --p-inputtext-hover-border-color: color-mix(in srgb, var(--border-color, #444) 55%, var(--fg-color, #e6e6e6));
+    --p-inputtext-focus-border-color: var(--primary, #0b8ce9);
+    --p-inputtext-focus-ring-shadow: 0 0 0 2px color-mix(in srgb, var(--primary, #0b8ce9) 35%, transparent);
+    --p-inputtext-shadow: none;
+    --p-input-background: var(--comfy-input-bg, #171718);
+    --p-form-field-hover-border-color: var(--p-inputtext-hover-border-color);
+    --p-form-field-focus-border-color: var(--primary, #0b8ce9);
+    --p-form-field-filled-hover-background: color-mix(in srgb, var(--comfy-input-bg, #171718) 85%, var(--fg-color, #e6e6e6));
+
+    /* --- 按钮 --- */
+    --p-button-primary-background: var(--primary, #0b8ce9);
+    --p-button-primary-border-color: var(--primary, #0b8ce9);
+    --p-button-primary-color: #ffffff;
+    --p-button-primary-hover-background: color-mix(in srgb, var(--primary, #0b8ce9) 82%, #fff);
+    --p-button-primary-hover-border-color: color-mix(in srgb, var(--primary, #0b8ce9) 82%, #fff);
+    --p-button-primary-hover-color: #ffffff;
+    --p-button-secondary-background: var(--secondary, #262729);
+    --p-button-secondary-color: var(--fg-color, #e6e6e6);
+    --p-button-secondary-hover-background: var(--accent, #303030);
+    --p-button-text-primary-color: var(--primary, #0b8ce9);
+    --p-button-text-secondary-color: var(--descrip-text, #9a9a9a);
+    --p-button-text-secondary-hover-background: color-mix(in srgb, var(--fg-color, #e6e6e6) 10%, transparent);
+    --p-button-danger-background: var(--destructive, #ef4444);
+    --p-button-danger-border-color: var(--destructive, #ef4444);
+    --p-button-danger-color: #ffffff;
+    --p-button-danger-hover-background: color-mix(in srgb, var(--destructive, #ef4444) 82%, #fff);
+    --p-button-danger-hover-border-color: color-mix(in srgb, var(--destructive, #ef4444) 82%, #fff);
+    --p-button-danger-active-border-color: color-mix(in srgb, var(--destructive, #ef4444) 35%, transparent);
+
+    /* --- 复选框 --- */
+    --p-checkbox-background: var(--comfy-input-bg, #171718);
+    --p-checkbox-border-color: var(--border-color, #444);
+    --p-checkbox-border-radius: 4px;
+    --p-checkbox-checked-background: var(--primary, #0b8ce9);
+    --p-checkbox-checked-border-color: var(--primary, #0b8ce9);
+    --p-checkbox-checked-hover-background: var(--primary, #0b8ce9);
+    --p-checkbox-checked-hover-border-color: var(--primary, #0b8ce9);
+    --p-checkbox-hover-border-color: var(--primary, #0b8ce9);
+    --p-checkbox-icon-checked-color: #ffffff;
+
+    /* --- 列表 / 选择框浮层 --- */
+    --p-listbox-background: var(--comfy-menu-bg, #202121);
+    --p-listbox-option-selected-color: #ffffff;
+    --p-list-item-color: var(--fg-color, #e6e6e6);
+    --p-list-item-padding: 0.5rem 0.75rem;
+    --p-list-option-focus-background: color-mix(in srgb, var(--fg-color, #e6e6e6) 8%, transparent);
+    --p-list-option-selected-focus-background: var(--primary, #0b8ce9);
+    --p-list-padding: 0.25rem;
+    --p-select-background: var(--comfy-input-bg, #171718);
+    --p-select-border-color: var(--border-color, #444);
+    --p-select-border-radius: 6px;
+    --p-select-color: var(--fg-color, #e6e6e6);
+    --p-select-list-gap: 2px;
+    --p-select-option-border-radius: 4px;
+    --p-select-option-color: var(--fg-color, #e6e6e6);
+    --p-select-option-focus-background: color-mix(in srgb, var(--fg-color, #e6e6e6) 8%, transparent);
+    --p-select-option-focus-color: var(--fg-color, #e6e6e6);
+    --p-select-option-selected-background: color-mix(in srgb, var(--primary, #0b8ce9) 22%, transparent);
+    --p-select-option-selected-color: var(--fg-color, #e6e6e6);
+    --p-select-overlay-background: var(--comfy-menu-bg, #202121);
+    --p-select-overlay-border-color: var(--border-color, #444);
+    --p-select-overlay-border-radius: 6px;
+    --p-select-overlay-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --p-select-padding-x: 0.75rem;
+    --p-select-padding-y: 0.5rem;
+    --p-select-shadow: none;
+
+    /* --- 消息提示 --- */
+    --p-message-info-background: color-mix(in srgb, var(--primary, #0b8ce9) 15%, transparent);
+    --p-message-info-border-color: var(--primary, #0b8ce9);
+    --p-message-info-color: var(--fg-color, #e6e6e6);
+    --p-message-error-color: var(--destructive, #ef4444);
+    --p-message-success-color: #22c55e;
+    --p-message-warn-color: #fd9903;
+}
+
+/* --- PrimeVue 遗留类名的最小基础样式（新版前端已移除） --- */
+
+/* 新版前端使用 Reka UI 模态框（如设置弹窗）时会为 body 设置 pointer-events: none，
+   插件追加到 body 的弹窗/浮层默认会继承为 none，出现“看得见但点不到”的问题，
+   这里统一恢复为 auto。 */
+.settings-modal,
+.settings-modal-overlay,
+.pa-dropdown-panel,
+.pa-context-menu,
+.pa-confirm-popup,
+.pa-multi-listbox,
+.model-listbox-overlay,
+.model-listbox,
+.add-service-dialog,
+.image-assistant-copy-dialog,
+.popup_container,
+.button-context-menu {
+    pointer-events: auto;
+}
+
+/* 屏幕阅读器专用隐藏元素：新版前端缺少该工具类，会导致隐藏的 <select> 露出并重叠 */
+.pa-settings-root .p-hidden-accessible,
+.settings-modal .p-hidden-accessible,
+.prompt-assistant-container .p-hidden-accessible,
+.caption-frame-dialog .p-hidden-accessible,
+.pa-dropdown .p-hidden-accessible {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: -1px !important;
+}
+
+/* 弹窗头部/底部布局（原由 PrimeVue 提供） */
+.settings-modal .p-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    color: var(--p-dialog-header-color);
+}
+
+.settings-modal .p-dialog-header .p-dialog-title {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--p-dialog-header-color);
+}
+
+.settings-modal .p-dialog-header-icons {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.settings-modal .p-dialog-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* 按钮基础样式 */
+.pa-settings-root .p-button,
+.settings-modal .p-button,
+.prompt-assistant-container .p-button,
+.caption-frame-dialog .p-button,
+.pa-help-translate-btn-container .p-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: var(--p-button-primary-background);
+    color: var(--p-button-primary-color);
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.pa-settings-root .p-button:hover,
+.settings-modal .p-button:hover,
+.prompt-assistant-container .p-button:hover,
+.caption-frame-dialog .p-button:hover,
+.pa-help-translate-btn-container .p-button:hover {
+    background: var(--p-button-primary-hover-background);
+    border-color: var(--p-button-primary-hover-border-color);
+    color: var(--p-button-primary-hover-color);
+}
+
+.pa-settings-root .p-button-secondary,
+.settings-modal .p-button-secondary,
+.prompt-assistant-container .p-button-secondary,
+.caption-frame-dialog .p-button-secondary,
+.pa-help-translate-btn-container .p-button-secondary {
+    background: var(--p-button-secondary-background);
+    border-color: var(--p-content-border-color);
+    color: var(--p-button-secondary-color);
+}
+
+.pa-settings-root .p-button-secondary:hover,
+.settings-modal .p-button-secondary:hover,
+.prompt-assistant-container .p-button-secondary:hover,
+.caption-frame-dialog .p-button-secondary:hover,
+.pa-help-translate-btn-container .p-button-secondary:hover {
+    background: var(--p-button-secondary-hover-background);
+    border-color: var(--p-content-border-color);
+    color: var(--p-button-secondary-color);
+}
+
+.pa-settings-root .p-button-text,
+.settings-modal .p-button-text,
+.prompt-assistant-container .p-button-text,
+.caption-frame-dialog .p-button-text,
+.pa-help-translate-btn-container .p-button-text {
+    background: transparent;
+    border-color: transparent;
+    color: var(--p-button-text-primary-color);
+}
+
+.pa-settings-root .p-button-text:hover,
+.settings-modal .p-button-text:hover,
+.prompt-assistant-container .p-button-text:hover,
+.caption-frame-dialog .p-button-text:hover,
+.pa-help-translate-btn-container .p-button-text:hover {
+    background: var(--p-button-text-secondary-hover-background);
+    border-color: transparent;
+    color: var(--p-button-text-primary-color);
+}
+
+.pa-settings-root .p-button-sm,
+.settings-modal .p-button-sm,
+.prompt-assistant-container .p-button-sm,
+.caption-frame-dialog .p-button-sm,
+.pa-help-translate-btn-container .p-button-sm {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.8rem;
+}
+
+.pa-settings-root .p-button-icon-only,
+.settings-modal .p-button-icon-only,
+.prompt-assistant-container .p-button-icon-only,
+.caption-frame-dialog .p-button-icon-only,
+.pa-help-translate-btn-container .p-button-icon-only {
+    padding: 0.5rem;
+    width: auto;
+}
+
+.pa-settings-root .p-button:disabled,
+.settings-modal .p-button:disabled,
+.prompt-assistant-container .p-button:disabled,
+.caption-frame-dialog .p-button:disabled,
+.pa-help-translate-btn-container .p-button:disabled,
+.p-button.p-disabled {
+    opacity: 0.6;
+    cursor: default;
+    pointer-events: none;
+}
+
+.pa-settings-root .p-button-label,
+.settings-modal .p-button-label,
+.prompt-assistant-container .p-button-label,
+.caption-frame-dialog .p-button-label,
+.pa-help-translate-btn-container .p-button-label {
+    display: inline-block;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+/* 输入框基础样式（排除下拉框中的 label 元素，避免出现双重边框） */
+.pa-settings-root .p-inputtext:not(.pa-dropdown-label):not(.pa-combobox-input),
+.settings-modal .p-inputtext:not(.pa-dropdown-label):not(.pa-combobox-input),
+.prompt-assistant-container .p-inputtext:not(.pa-dropdown-label):not(.pa-combobox-input),
+.caption-frame-dialog .p-inputtext:not(.pa-dropdown-label):not(.pa-combobox-input) {
+    box-sizing: border-box;
+    background: var(--p-inputtext-background);
+    border: 1px solid var(--p-inputtext-border-color);
+    border-radius: var(--p-inputtext-border-radius);
+    color: var(--p-inputtext-color);
+    font-family: inherit;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pa-settings-root .p-inputtext:not(.pa-dropdown-label):not(.pa-combobox-input):focus,
+.settings-modal .p-inputtext:not(.pa-dropdown-label):not(.pa-combobox-input):focus,
+.prompt-assistant-container .p-inputtext:not(.pa-dropdown-label):not(.pa-combobox-input):focus,
+.caption-frame-dialog .p-inputtext:not(.pa-dropdown-label):not(.pa-combobox-input):focus {
+    border-color: var(--p-inputtext-focus-border-color);
+    box-shadow: var(--p-inputtext-focus-ring-shadow);
+}
+
+/* 内联设置行（用于新版设置面板中的自定义控件） */
+.pa-settings-inline {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* ===================================================
    1. 全局基础样式
    =================================================== */
 
@@ -556,8 +906,12 @@
 
 .pa-dropdown .pa-dropdown-label {
     flex: 1 1 auto;
+    display: flex;
+    align-items: center;
     border: 0 none;
     color: var(--p-inputtext-color);
+    font-size: 0.875rem;
+    padding: 0 0.75rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -647,7 +1001,7 @@
 
 .pa-dropdown-panel .p-dropdown-item.p-highlight {
     background-color: var(--p-list-option-selected-focus-background);
-    color: var(--p-form-field-focus-border-color);
+    color: var(--p-listbox-option-selected-color);
 }
 
 /* ---可输入下拉框（ComboBox）样式--- */
