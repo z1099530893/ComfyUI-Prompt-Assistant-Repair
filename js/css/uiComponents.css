@@ -46,7 +46,7 @@
     --p-panel-border-color: var(--border-color, #444);
     --p-divider-color: var(--border-color, #444);
     --p-divider-border-color: var(--border-color, #444);
-    --p-surface-0: var(--card, #262729);
+    --p-surface-0: var(--fg-color, #ffffff);
     --p-surface-50: var(--comfy-menu-bg, #202121);
     --p-surface-100: var(--accent, #303030);
     --p-surface-400: var(--border-color, #444);
@@ -3305,6 +3305,7 @@ body.column-resizing * {
     z-index: var(--settings-tooltip-z-index);
     background: var(--p-surface-700);
     /* border: 1px solid var(--p-dialog-border-color); */
+    border: 1px solid var(--border-color, #444);
     border-radius: 6px;
     padding: 6px 12px;
     font-size: 13px;
